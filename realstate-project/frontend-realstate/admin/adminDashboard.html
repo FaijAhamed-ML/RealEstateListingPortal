@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — EstateView</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      * { font-family: 'DM Sans', sans-serif; }
+      h1, h2, .serif { font-family: 'DM Serif Display', serif; }
+      body { background-color: #f5f2ee; min-height: 100vh; }
+
+      .sidebar { width: 240px; background: #1a1a1a; display: flex; flex-direction: column; padding: 32px 0; flex-shrink: 0; position: relative; overflow: hidden; }
+      .sidebar::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 20% 80%, rgba(180,160,120,0.1) 0%, transparent 70%), radial-gradient(ellipse 50% 60% at 80% 20%, rgba(120,100,70,0.08) 0%, transparent 70%); pointer-events: none; }
+      .sidebar .brand { font-family: 'DM Serif Display', serif; font-size: 22px; color: #fff; padding: 0 24px; margin-bottom: 6px; position: relative; z-index: 2; }
+      .sidebar .brand-sub { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a7f72; padding: 0 24px; margin-bottom: 32px; position: relative; z-index: 2; }
+      .sidebar nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; position: relative; z-index: 2; }
+      .sidebar nav a { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 10px; color: #8a7f72; font-size: 14px; font-weight: 500; text-decoration: none; transition: background 0.15s, color 0.15s; }
+      .sidebar nav a:hover { background: rgba(255,255,255,0.06); color: #d6d0c8; }
+      .sidebar nav a.active { background: rgba(255,255,255,0.08); color: #fff; border-left: 3px solid #c9b99a; }
+      .sidebar .logout-btn { margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 10px 16px; margin-left: 12px; margin-right: 12px; border-radius: 10px; color: #8a7f72; font-size: 14px; font-weight: 500; background: none; border: none; cursor: pointer; transition: background 0.15s, color 0.15s; width: calc(100% - 24px); text-align: left; position: relative; z-index: 2; }
+      .sidebar .logout-btn:hover { background: rgba(220,80,80,0.1); color: #e24b4a; }
+
+      .stat-card { background: #fff; border-radius: 16px; padding: 20px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+      .stat-card .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #9a9189; margin-bottom: 6px; }
+      .stat-card .stat-value { font-family: 'DM Serif Display', serif; font-size: 28px; color: #1a1a1a; }
+
+      .chart-card { background: #fff; border-radius: 20px; padding: 28px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+      .chart-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #9a9189; margin-bottom: 16px; }
+
+      .spinner { width: 24px; height: 24px; border: 2.5px solid #e8e3dc; border-top-color: #7c6f5e; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="flex">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">EstateView</div>
+        <div class="brand-sub">Admin Panel</div>
+        <nav>
+            <a href="adminDashboard.html" class="active">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Dashboard
+            </a>
+            <a href="AdminView.html">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Users
+            </a>
+            <a href="adminProperties.html">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                Properties
+            </a>
+            <a href="adminInquire.html">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                Inquiries
+            </a>
+        </nav>
+        <button onclick="logout()" class="logout-btn">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Logout
+        </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-10 overflow-y-auto">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-2xl text-stone-900 leading-none">Dashboard</h1>
+            <p class="text-sm text-stone-400 mt-1">Overview of your platform</p>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-4 gap-5 mb-8">
+            <div class="stat-card">
+                <p class="stat-label">Total Users</p>
+                <p id="statUsers" class="stat-value">—</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Total Properties</p>
+                <p id="statProperties" class="stat-value">—</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Total Value</p>
+                <p id="statValue" class="stat-value" style="font-size:20px;color:#2d8a5e;">—</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Avg. Property Value</p>
+                <p id="statAvg" class="stat-value" style="font-size:20px;color:#7c6f5e;">—</p>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="chart-card">
+                <p class="chart-title">Properties per User</p>
+                <canvas id="chartPropertiesPerUser"></canvas>
+            </div>
+            <div class="chart-card">
+                <p class="chart-title">Property Value Distribution</p>
+                <canvas id="chartValueDist"></canvas>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+            <div class="chart-card">
+                <p class="chart-title">Property Values (Bar)</p>
+                <canvas id="chartValues"></canvas>
+            </div>
+            <div class="chart-card">
+                <p class="chart-title">Listings by Location</p>
+                <canvas id="chartLocations"></canvas>
+            </div>
+        </div>
+
+        <!-- Loading overlay -->
+        <div id="loadingState" class="text-center py-10 text-stone-400">
+            <div class="spinner"></div>
+            <p class="text-sm text-stone-500">Loading dashboard data…</p>
+        </div>
+
+    </main>
+
+    <script>
+        const API_BASE = "http://localhost:8080";
+
+        const PALETTE = [
+            '#7c6f5e','#c9b99a','#b0a898','#d6d0c8','#9a9189',
+            '#6b6259','#e8e3dc','#5a4f44','#a89880','#8a7f72'
+        ];
+
+        async function loadDashboard() {
+            try {
+                const [usersRes, propsRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/admin/users`),
+                    fetch(`${API_BASE}/dashboard`)
+                ]);
+                if (!usersRes.ok || !propsRes.ok) throw new Error("API error");
+
+                const users = await usersRes.json();
+                const properties = await propsRes.json();
+                const nonAdminUsers = users.filter(u => u.role !== "admin");
+
+                document.getElementById("loadingState").classList.add("hidden");
+
+                // Stats
+                document.getElementById("statUsers").textContent = nonAdminUsers.length;
+                document.getElementById("statProperties").textContent = properties.length;
+                const totalVal = properties.reduce((s, p) => s + (p.value || 0), 0);
+                document.getElementById("statValue").textContent = formatLKR(totalVal);
+                document.getElementById("statAvg").textContent = properties.length ? formatLKR(Math.round(totalVal / properties.length)) : '—';
+
+                renderCharts(nonAdminUsers, properties);
+            } catch (e) {
+                document.getElementById("loadingState").innerHTML =
+                    `<p style="color:#c0392b;text-align:center;">Failed to load dashboard. Is the server running?</p>`;
+            }
+        }
+
+        function formatLKR(val) {
+            return new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', maximumFractionDigits: 0 }).format(val);
+        }
+
+        function renderCharts(users, properties) {
+            // 1. Properties per user (doughnut)
+            const userPropCount = {};
+            properties.forEach(p => {
+                const label = `User #${p.userId}`;
+                userPropCount[label] = (userPropCount[label] || 0) + 1;
+            });
+            new Chart(document.getElementById('chartPropertiesPerUser'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(userPropCount),
+                    datasets: [{
+                        data: Object.values(userPropCount),
+                        backgroundColor: PALETTE,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 12 }, color: '#6b6259', padding: 14 } }
+                    }
+                }
+            });
+
+            // 2. Value distribution (pie)
+            const buckets = { 'Under 1M': 0, '1M – 10M': 0, '10M – 100M': 0, '100M+': 0 };
+            properties.forEach(p => {
+                const v = p.value || 0;
+                if (v < 1_000_000) buckets['Under 1M']++;
+                else if (v < 10_000_000) buckets['1M – 10M']++;
+                else if (v < 100_000_000) buckets['10M – 100M']++;
+                else buckets['100M+']++;
+            });
+            new Chart(document.getElementById('chartValueDist'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(buckets),
+                    datasets: [{
+                        data: Object.values(buckets),
+                        backgroundColor: ['#c9b99a','#7c6f5e','#b0a898','#5a4f44'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 12 }, color: '#6b6259', padding: 14 } }
+                    }
+                }
+            });
+
+            // 3. Property values bar chart
+            const barLabels = properties.map(p => `#${p.propertyId}`);
+            const barValues = properties.map(p => p.value || 0);
+            new Chart(document.getElementById('chartValues'), {
+                type: 'bar',
+                data: {
+                    labels: barLabels,
+                    datasets: [{
+                        label: 'Value (LKR)',
+                        data: barValues,
+                        backgroundColor: '#c9b99a',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { ticks: { callback: v => (v / 1e6).toFixed(0) + 'M', font: { family: 'DM Sans' }, color: '#9a9189' }, grid: { color: '#f0ece6' } },
+                        x: { ticks: { font: { family: 'DM Sans' }, color: '#9a9189' }, grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 4. Listings by location (horizontal bar)
+            const locCount = {};
+            properties.forEach(p => {
+                const loc = p.location || 'Unknown';
+                locCount[loc] = (locCount[loc] || 0) + 1;
+            });
+            new Chart(document.getElementById('chartLocations'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(locCount),
+                    datasets: [{
+                        label: 'Listings',
+                        data: Object.values(locCount),
+                        backgroundColor: '#7c6f5e',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    scales: {
+                        x: { ticks: { stepSize: 1, font: { family: 'DM Sans' }, color: '#9a9189' }, grid: { color: '#f0ece6' } },
+                        y: { ticks: { font: { family: 'DM Sans' }, color: '#9a9189' }, grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = "../user/login.html";
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EstateView — Sign Up</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: #f5f2ee;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── Left panel ── */
+    .left-panel {
+      width: 52%;
+      background: #1a1a1a;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px;
+    }
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 80%, rgba(180,160,120,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 80% 20%, rgba(120,100,70,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .grid-pattern {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    .brand-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      color: #fff;
+      position: relative;
+      z-index: 2;
+    }
+    .brand-tagline {
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #8a7f72;
+      margin-top: 4px;
+    }
+    .hero-text {
+      position: relative;
+      z-index: 2;
+    }
+    .hero-text h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 44px;
+      line-height: 1.15;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .hero-text h2 em {
+      color: #c9b99a;
+      font-style: italic;
+    }
+    .hero-text p {
+      font-size: 15px;
+      color: #8a7f72;
+      line-height: 1.7;
+      max-width: 320px;
+    }
+
+    /* ── Right panel ── */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 40px;
+    }
+    .form-card {
+      width: 100%;
+      max-width: 450px;
+    }
+    .form-card h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 32px;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+    .form-card .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 24px;
+    }
+
+    .field-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .full-width { grid-column: span 2; }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #888;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap input, .input-wrap select {
+      width: 100%;
+      background: #fff;
+      border: 1.5px solid #e0dbd3;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: #1a1a1a;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-wrap input:focus {
+      border-color: #1a1a1a;
+      box-shadow: 0 0 0 3px rgba(26,26,26,0.07);
+    }
+    .input-wrap input.error {
+      border-color: #e24b4a;
+    }
+
+    .error-msg {
+      font-size: 11px;
+      color: #e24b4a;
+      margin-top: 2px;
+      min-height: 14px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+
+    .btn-signup {
+      width: 100%;
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 15px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .btn-signup:hover { background: #2e2e2e; }
+    .btn-signup:active { transform: scale(0.99); }
+    .btn-signup:disabled { background: #ccc; cursor: not-allowed; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .register-row {
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      margin-top: 24px;
+    }
+    .register-row a {
+      color: #1a1a1a;
+      font-weight: 500;
+      text-decoration: none;
+      border-bottom: 1px solid #1a1a1a;
+      padding-bottom: 1px;
+      transition: opacity 0.15s;
+    }
+    .register-row a:hover { opacity: 0.6; }
+
+    .global-error {
+      background: #fff0f0;
+      border: 1px solid #f7c1c1;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #a32d2d;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .global-error.show { display: block; }
+
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      z-index: 999;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .left-panel {
+        width: 100%;
+        padding: 32px 24px;
+        min-height: auto;
+      }
+      .hero-text h2 { font-size: 30px; }
+      .hero-text p { display: none; }
+      .right-panel { padding: 32px 24px; }
+      .field-group { grid-template-columns: 1fr; }
+      .full-width { grid-column: span 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="left-panel">
+    <div class="grid-pattern"></div>
+    <div>
+      <div class="brand-logo">EstateView</div>
+      <div class="brand-tagline">Join our community</div>
+    </div>
+    <div class="hero-text">
+      <h2>Create your <em>account</em> today.</h2>
+      <p>Start listing your properties or find your dream home. Join thousands of users in our growing ecosystem.</p>
+    </div>
+    <div style="height: 40px;"></div>
+  </div>
+
+  <div class="right-panel">
+    <div class="form-card">
+      <h1>Sign up</h1>
+      <p class="subtitle">Enter your details to create an account</p>
+
+      <div id="global-error" class="global-error"></div>
+
+      <form id="signup-form" onsubmit="handleSignup(event)">
+        <div class="field-group">
+          <div class="field full-width">
+            <label for="name">Full Name</label>
+            <div class="input-wrap">
+              <input type="text" id="name" placeholder="John Doe" required/>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="username">Username</label>
+            <div class="input-wrap">
+              <input type="text" id="username" placeholder="johndoe123" required/>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <div class="input-wrap">
+              <input type="email" id="email" placeholder="john@example.com" required/>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+              <input type="password" id="password" placeholder="••••••••" required/>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="phoneNumber">Phone Number</label>
+            <div class="input-wrap">
+              <input type="text" id="phoneNumber" placeholder="071 234 5678" required/>
+            </div>
+          </div>
+
+          <div class="field full-width">
+            <label for="role">I am a...</label>
+            <div class="input-wrap">
+              <select id="role" required>
+                <option value="user">Buyer / Seller</option>
+                <option value="admin">Administrator</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-signup" id="signup-btn">
+          <div class="spinner" id="spinner"></div>
+          <span id="btn-text">Create Account</span>
+        </button>
+      </form>
+
+      <div class="register-row">
+        Already have an account? <a href="login.html">Sign in</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API_BASE = 'http://localhost:8080/api';
+
+    function setLoading(loading) {
+      const btn = document.getElementById('signup-btn');
+      const spinner = document.getElementById('spinner');
+      const text = document.getElementById('btn-text');
+      btn.disabled = loading;
+      spinner.style.display = loading ? 'block' : 'none';
+      text.textContent = loading ? 'Creating account…' : 'Create Account';
+    }
+
+    async function handleSignup(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value.trim();
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
+      const role = document.getElementById('role').value;
+
+      setLoading(true);
+      document.getElementById('global-error').classList.remove('show');
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, username, email, password, phoneNumber, role })
+        });
+
+        if (res.ok) {
+          showToast('Account created successfully! Redirecting...');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
+        } else {
+          const data = await res.json();
+          throw new Error(data.message || 'Registration failed');
+        }
+      } catch (e) {
+        const err = document.getElementById('global-error');
+        err.textContent = e.message || 'Could not connect to server.';
+        err.classList.add('show');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Management — EstateView</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      * { font-family: 'DM Sans', sans-serif; }
+      h1, h2, .serif { font-family: 'DM Serif Display', serif; }
+      body { background-color: #f5f2ee; min-height: 100vh; }
+
+      .sidebar { width: 240px; background: #1a1a1a; display: flex; flex-direction: column; padding: 32px 0; flex-shrink: 0; position: relative; overflow: hidden; }
+      .sidebar::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 20% 80%, rgba(180,160,120,0.1) 0%, transparent 70%), radial-gradient(ellipse 50% 60% at 80% 20%, rgba(120,100,70,0.08) 0%, transparent 70%); pointer-events: none; }
+      .sidebar .brand { font-family: 'DM Serif Display', serif; font-size: 22px; color: #fff; padding: 0 24px; margin-bottom: 6px; position: relative; z-index: 2; }
+      .sidebar .brand-sub { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a7f72; padding: 0 24px; margin-bottom: 32px; position: relative; z-index: 2; }
+      .sidebar nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; position: relative; z-index: 2; }
+      .sidebar nav a { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 10px; color: #8a7f72; font-size: 14px; font-weight: 500; text-decoration: none; transition: background 0.15s, color 0.15s; }
+      .sidebar nav a:hover { background: rgba(255,255,255,0.06); color: #d6d0c8; }
+      .sidebar nav a.active { background: rgba(255,255,255,0.08); color: #fff; border-left: 3px solid #c9b99a; }
+      .sidebar .logout-btn { margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 10px 16px; margin-left: 12px; margin-right: 12px; border-radius: 10px; color: #8a7f72; font-size: 14px; font-weight: 500; background: none; border: none; cursor: pointer; transition: background 0.15s, color 0.15s; width: calc(100% - 24px); text-align: left; position: relative; z-index: 2; }
+      .sidebar .logout-btn:hover { background: rgba(220,80,80,0.1); color: #e24b4a; }
+
+      .stat-card { background: #fff; border-radius: 16px; padding: 20px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+      .stat-card .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #9a9189; margin-bottom: 6px; }
+      .stat-card .stat-value { font-family: 'DM Serif Display', serif; font-size: 28px; color: #1a1a1a; }
+
+      .card { background: #fff; border-radius: 16px; overflow: hidden; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+      .card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.10); }
+      .img-wrap { width: 100%; aspect-ratio: 4/3; overflow: hidden; background: #e8e3dc; position: relative; }
+      .img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+      .card:hover .img-wrap img { transform: scale(1.04); }
+      .img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #b0a898; font-size: 13px; }
+      .price { font-family: 'DM Serif Display', serif; font-size: 22px; color: #1a1a1a; }
+      .badge { background: #1a1a1a; color: #fff; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; }
+
+      .search-wrap { display: flex; align-items: center; gap: 8px; background: #fff; border: 1.5px solid #ddd8d0; border-radius: 10px; padding: 10px 14px; width: 240px; transition: border-color 0.2s, box-shadow 0.2s; }
+      .search-wrap:focus-within { border-color: #7c6f5e; box-shadow: 0 0 0 3px rgba(124,111,94,0.1); }
+      .search-wrap input { background: transparent; border: none; outline: none; font-size: 14px; color: #1a1a1a; width: 100%; font-family: 'DM Sans', sans-serif; }
+      .search-wrap input::placeholder { color: #b0a898; }
+
+      .delete-btn { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; color: #c0392b; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.15); cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+      .delete-btn:hover { background: rgba(192,57,43,0.15); border-color: rgba(192,57,43,0.3); }
+
+      .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 100; }
+      .modal-card { background: #fff; border-radius: 20px; padding: 32px; width: 100%; max-width: 400px; margin: 0 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+      .btn-cancel { flex: 1; padding: 12px 20px; border-radius: 10px; border: 1.5px solid #d6d0c8; background: transparent; color: #6b6259; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; font-family: 'DM Sans', sans-serif; }
+      .btn-cancel:hover { background: #f0ece6; }
+      .btn-delete-confirm { flex: 1; padding: 12px 20px; border-radius: 10px; border: none; background: #c0392b; color: #fff; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; font-family: 'DM Sans', sans-serif; }
+      .btn-delete-confirm:hover { background: #a93226; }
+
+      .spinner { width: 24px; height: 24px; border: 2.5px solid #e8e3dc; border-top-color: #7c6f5e; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      .skeleton { background: linear-gradient(90deg, #ede8e1 25%, #e2ddd6 50%, #ede8e1 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+      @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+      .toast { position: fixed; bottom: 28px; right: 28px; background: #1a1a1a; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; z-index: 999; opacity: 0; transform: translateY(12px); transition: opacity 0.3s, transform 0.3s; }
+      .toast.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body class="flex">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">EstateView</div>
+        <div class="brand-sub">Admin Panel</div>
+        <nav>
+            <a href="adminDashboard.html">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Dashboard
+            </a>
+            <a href="AdminView.html">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Users
+            </a>
+            <a href="adminProperties.html" class="active">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                Properties
+            </a>
+            <a href="adminInquire.html">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                Inquiries
+            </a>
+        </nav>
+        <button onclick="logout()" class="logout-btn">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Logout
+        </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-10 overflow-y-auto">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-2xl text-stone-900 leading-none">Property Management</h1>
+                <p class="text-sm text-stone-400 mt-1">Manage all listed properties</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="search-wrap">
+                    <svg width="16" height="16" fill="none" stroke="#b0a898" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input id="searchInput" type="text" placeholder="Search properties…" oninput="filterProperties()" />
+                </div>
+                <button onclick="openAddModal()" class="btn-primary" style="background: #1a1a1a; color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 500;">+ Add Property</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-5 mb-8">
+            <div class="stat-card">
+                <p class="stat-label">Total Properties</p>
+                <p id="totalCount" class="stat-value">—</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Total Value</p>
+                <p id="totalValue" class="stat-value" style="font-size:22px; color:#2d8a5e;">—</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Showing</p>
+                <p id="showingCount" class="stat-value" style="color:#7c6f5e;">—</p>
+            </div>
+        </div>
+
+        <!-- Properties Grid -->
+        <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-20 text-stone-400">
+            <p class="text-5xl mb-4">🏠</p>
+            <p class="text-lg">No properties found.</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-20 text-stone-400">
+            <div class="spinner"></div>
+            <p class="text-sm text-stone-500">Loading properties…</p>
+        </div>
+
+    </main>
+
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="flex items-center gap-4 mb-4">
+                <div style="width:44px;height:44px;border-radius:50%;background:rgba(192,57,43,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="22" height="22" fill="none" stroke="#c0392b" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-lg text-stone-900 serif">Delete Property</h3>
+                    <p id="deleteModalSubtitle" class="text-sm text-stone-400">This action cannot be undone.</p>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeModal()" class="btn-cancel">Cancel</button>
+                <button onclick="confirmDelete()" class="btn-delete-confirm">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="propertyModal" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 520px;">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl text-stone-900 serif" id="modalTitle">List a Property</h2>
+                <button onclick="closePropertyModal()" class="text-stone-400 hover:text-stone-700 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="flex flex-col gap-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Value (LKR)</label>
+                        <input type="number" id="f-value" class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 outline-none focus:border-stone-400" placeholder="e.g. 1500000" />
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Contact</label>
+                        <input type="text" id="f-contact" class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 outline-none focus:border-stone-400" placeholder="071 234 5678" />
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Location</label>
+                    <input type="text" id="f-location" class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 outline-none focus:border-stone-400" placeholder="e.g. Colombo 7" />
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Details</label>
+                    <input type="text" id="f-details" class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 outline-none focus:border-stone-400" placeholder="3 bed, 2 bath…" />
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Description</label>
+                    <textarea id="f-description" rows="2" class="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 outline-none focus:border-stone-400" placeholder="Describe the property…"></textarea>
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Property Images</label>
+                    <input type="file" id="f-image" accept="image/png,image/jpeg" multiple class="w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-stone-100 file:text-stone-700 hover:file:bg-stone-200" />
+                </div>
+                <button class="btn-primary w-full mt-2" id="submit-btn" onclick="submitProperty()" style="background: #1a1a1a; color: #fff; padding: 12px; border-radius: 10px; font-weight: 500;">Submit Listing</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const API_BASE = "http://localhost:8080";
+        let allProperties = [];
+        let deleteTargetId = null;
+
+        async function fetchProperties() {
+            document.getElementById("loadingState").classList.remove("hidden");
+            document.getElementById("grid").innerHTML = "";
+            try {
+                const res = await fetch(`${API_BASE}/dashboard`);
+                if (!res.ok) throw new Error("Failed to fetch");
+                allProperties = await res.json();
+                document.getElementById("loadingState").classList.add("hidden");
+                updateStats();
+                renderGrid(allProperties);
+            } catch (err) {
+                document.getElementById("loadingState").innerHTML =
+                    `<p class="text-sm" style="color:#c0392b;padding:60px 20px;text-align:center;">Failed to load properties. Is the server running?</p>`;
+            }
+        }
+
+        function renderGrid(list) {
+            const grid = document.getElementById("grid");
+            const empty = document.getElementById("emptyState");
+
+            if (!list.length) {
+                grid.innerHTML = "";
+                empty.classList.remove("hidden");
+                document.getElementById("showingCount").textContent = 0;
+                return;
+            }
+
+            empty.classList.add("hidden");
+            document.getElementById("showingCount").textContent = list.length;
+
+            grid.innerHTML = list.map(p => {
+                const imgSrc = (p.imagePaths && p.imagePaths.length > 0) ? `${API_BASE}/property-images/${p.imagePaths[0]}` : null;
+                const formatted = new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', maximumFractionDigits: 0 }).format(p.value);
+                return `
+                <div class="card cursor-pointer" onclick="viewProperty(${JSON.stringify(p).replace(/"/g, '&quot;')})" data-id="${p.propertyId}">
+                    <div class="img-wrap">
+                        ${imgSrc
+                          ? `<img src="${imgSrc}" alt="Property image" onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'>No image</div>'" />`
+                          : `<div class="img-placeholder">No image</div>`}
+                        <div class="absolute top-3 left-3">
+                            <span class="badge">User #${p.userId}</span>
+                        </div>
+                    </div>
+                    <div class="p-4 flex flex-col gap-2">
+                        <p class="price">${formatted}</p>
+                        ${p.details ? `<p class="text-sm font-medium text-stone-700">${p.details}</p>` : ''}
+                        ${p.description ? `<p class="text-sm text-stone-500 leading-relaxed" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.description}</p>` : ''}
+                        <div class="flex flex-wrap gap-3 mt-1 pt-3 border-t border-stone-100 text-xs text-stone-400">
+                            ${p.location ? `<span>📍 ${p.location}</span>` : ''}
+                            ${p.contactNumber ? `<span>📞 ${p.contactNumber}</span>` : ''}
+                        </div>
+                        <div class="mt-2 flex justify-end">
+                            <button onclick="event.stopPropagation(); openDeleteModal(${p.propertyId}, '${(p.description || 'Property #' + p.propertyId).replace(/'/g, "\\'")}')" class="delete-btn">Delete</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join("");
+        }
+
+        function filterProperties() {
+            const q = document.getElementById("searchInput").value.toLowerCase();
+            const filtered = allProperties.filter(p =>
+                (p.description || '').toLowerCase().includes(q) ||
+                (p.details || '').toLowerCase().includes(q) ||
+                (p.Location || '').toLowerCase().includes(q) ||
+                String(p.propertyId).includes(q)
+            );
+            renderGrid(filtered);
+        }
+
+        function viewProperty(p) {
+            localStorage.setItem('selectedProperty', JSON.stringify(p));
+            window.location.href = "../property/property.html";
+        }
+
+        function updateStats() {
+            document.getElementById("totalCount").textContent = allProperties.length;
+            const total = allProperties.reduce((s, p) => s + (p.value || 0), 0);
+            document.getElementById("totalValue").textContent = new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', maximumFractionDigits: 0 }).format(total);
+            document.getElementById("showingCount").textContent = allProperties.length;
+        }
+
+        function openDeleteModal(id, desc) {
+            deleteTargetId = id;
+            document.getElementById("deleteModalSubtitle").textContent = `Are you sure you want to delete "${desc}"?`;
+            document.getElementById("deleteModal").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            deleteTargetId = null;
+            document.getElementById("deleteModal").classList.add("hidden");
+        }
+
+        async function confirmDelete() {
+            if (!deleteTargetId) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/property/${deleteTargetId}`, { method: "DELETE" });
+                if (!res.ok) throw new Error("Delete failed");
+                allProperties = allProperties.filter(p => p.propertyId !== deleteTargetId);
+                updateStats();
+                renderGrid(allProperties);
+                showToast("Property deleted successfully.");
+            } catch (err) {
+                showToast("Failed to delete property.");
+            } finally {
+                closeModal();
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById("toast");
+            t.textContent = msg;
+            t.classList.add("show");
+            setTimeout(() => t.classList.remove("show"), 3000);
+        }
+
+        function logout() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = "../user/login.html";
+        }
+
+        document.getElementById("deleteModal").addEventListener("click", function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        function openAddModal() {
+            document.getElementById("modalTitle").textContent = "List a Property";
+            document.getElementById("f-value").value = "";
+            document.getElementById("f-contact").value = "";
+            document.getElementById("f-location").value = "";
+            document.getElementById("f-details").value = "";
+            document.getElementById("f-description").value = "";
+            document.getElementById("f-image").value = "";
+            document.getElementById("propertyModal").classList.remove("hidden");
+        }
+
+        function closePropertyModal() {
+            document.getElementById("propertyModal").classList.add("hidden");
+        }
+
+        async function submitProperty() {
+            const btn = document.getElementById("submit-btn");
+            const value = document.getElementById("f-value").value;
+            const contact = document.getElementById("f-contact").value;
+            const location = document.getElementById("f-location").value;
+            const details = document.getElementById("f-details").value;
+            const description = document.getElementById("f-description").value;
+            const userId = localStorage.getItem("userId");
+
+            if (!value || !contact || !location) {
+                showToast("Please fill in required fields.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("userId", userId);
+            formData.append("value", value);
+            formData.append("contactNumber", contact);
+            formData.append("location", location);
+            formData.append("details", details);
+            formData.append("description", description);
+
+            const imageFiles = document.getElementById("f-image").files;
+            for (let i = 0; i < imageFiles.length; i++) {
+                formData.append("images", imageFiles[i]);
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Submitting...";
+
+            try {
+                const res = await fetch(`${API_BASE}/property`, {
+                    method: "POST",
+                    body: formData
+                });
+                if (!res.ok) throw new Error("Submission failed");
+                showToast("Property added successfully!");
+                closePropertyModal();
+                fetchProperties();
+            } catch (err) {
+                showToast("Failed to add property.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Submit Listing";
+            }
+        }
+
+        document.getElementById("propertyModal").addEventListener("click", function(e) {
+            if (e.target === this) closePropertyModal();
+        });
+
+        fetchProperties();
+    </script>
+</body>
+</html>

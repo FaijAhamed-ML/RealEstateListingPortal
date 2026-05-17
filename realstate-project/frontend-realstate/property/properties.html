@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Property Listings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+  <style>
+    * {
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    h1,
+    .serif {
+      font-family: 'DM Serif Display', serif;
+    }
+
+    body {
+      background-color: #f5f2ee;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.10);
+    }
+
+    .img-wrap {
+      width: 100%;
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      background: #e8e3dc;
+      position: relative;
+    }
+
+    .img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .card:hover .img-wrap img {
+      transform: scale(1.04);
+    }
+
+    .img-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #b0a898;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+    }
+
+    .badge {
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 99px;
+    }
+
+    .price {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: #1a1a1a;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #ede8e1 25%, #e2ddd6 50%, #ede8e1 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    .upload-zone {
+      border: 2px dashed #c9c2b8;
+      border-radius: 12px;
+      background: #faf8f5;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: #7c6f5e;
+      background: #f3efe9;
+    }
+
+    input[type=text],
+    input[type=number],
+    textarea,
+    select {
+      background: #faf8f5;
+      border: 1.5px solid #ddd8d0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    input[type=text]:focus,
+    input[type=number]:focus,
+    textarea:focus {
+      border-color: #7c6f5e;
+    }
+
+    .btn-primary {
+      background: #1a1a1a;
+      color: #fff;
+      border-radius: 10px;
+      padding: 12px 28px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-primary:hover {
+      background: #333;
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    .tab {
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: #888;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .tab.active {
+      background: #1a1a1a;
+      color: #fff;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      z-index: 999;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    #modal-bg.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    #modal {
+      background: #fff;
+      border-radius: 20px;
+      width: 92%;
+      max-width: 520px;
+      padding: 32px;
+      transform: scale(0.96);
+      transition: transform 0.2s;
+    }
+
+    #modal-bg.open #modal {
+      transform: scale(1);
+    }
+    /* Notification styles */
+    .notif-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px 24px;
+      border-left: 4px solid #7c6f5e;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .notif-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .notif-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f0ece6;
+      color: #6b6259;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 3px 10px;
+      border-radius: 99px;
+    }
+
+    .notif-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9a9189;
+    }
+
+    .notif-shimmer {
+      background: linear-gradient(90deg, #ede8e1 25%, #e2ddd6 50%, #ede8e1 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 14px;
+      height: 100px;
+    }
+
+    @keyframes notifSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .notif-animate {
+      animation: notifSlideIn 0.35s ease forwards;
+    }
+
+    .tab .notif-dot {
+      width: 7px;
+      height: 7px;
+      background: #e74c3c;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 4px;
+      vertical-align: top;
+    }
+
+    /* Lightbox Styles */
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    #lightbox.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    #lightbox-img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 8px;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    #lightbox.open #lightbox-img {
+      transform: scale(1);
+    }
+
+    .close-lightbox {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      color: #fff;
+      font-size: 40px;
+      cursor: pointer;
+      line-height: 1;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="bg-white border-b border-stone-200 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl text-stone-900 leading-none">EstateView</h1>
+        <p class="text-xs text-stone-400 mt-0.5 tracking-wide uppercase">Property Listings</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="myListings.html" class="btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">📋 My Listings</a>
+        <button class="btn-primary" onclick="openModal()">+ List Property</button>
+        <button class="btn-primary" onclick="logout()" style="background: transparent; border: 1.5px solid #d6d0c8; color: #6b6259; padding: 12px 20px;">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tabs + Search -->
+  <div class="max-w-6xl mx-auto px-6 mt-6 flex flex-wrap items-center gap-3">
+    <div class="flex bg-stone-100 rounded-lg p-1 gap-1">
+      <button class="tab" onclick="setTab('all', this)">All</button>
+      <button class="tab" onclick="setTab('mine', this)">My Listings</button>
+      <button class="tab flex items-center gap-2" id="inquiry-tab-btn" onclick="setTab('inquiries', this)">
+        My Inquiries<span class="notif-dot hidden" id="inquiry-dot"></span>
+      </button>
+      <button class="tab flex items-center gap-2" id="booking-tab-btn" onclick="setTab('bookings', this)">
+        📅 Visit Bookings<span class="notif-dot hidden" id="booking-dot"></span>
+      </button>
+    </div>
+    <input type="text" id="search-input" placeholder="Search by description or details…" style="width: 260px;"
+      oninput="filterCards()" />
+    <span id="count-badge" class="ml-auto text-sm text-stone-400"></span>
+  </div>
+
+  <!-- Price Range Filter -->
+  <div class="max-w-6xl mx-auto px-6 mt-4">
+    <div class="flex flex-wrap items-end gap-3 bg-white rounded-xl p-4 shadow-sm border border-stone-100">
+      <div class="flex items-center gap-2 text-sm font-medium text-stone-600">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        <span>Filter by Price</span>
+      </div>
+      <div class="flex flex-col">
+        <label for="filter-min-price" class="text-xs font-medium text-stone-400 uppercase tracking-wide mb-1">Min Price (LKR)</label>
+        <input type="number" id="filter-min-price" placeholder="e.g. 500000" style="width: 170px;" min="0" />
+      </div>
+      <div class="flex flex-col">
+        <label for="filter-max-price" class="text-xs font-medium text-stone-400 uppercase tracking-wide mb-1">Max Price (LKR)</label>
+        <input type="number" id="filter-max-price" placeholder="e.g. 5000000" style="width: 170px;" min="0" />
+      </div>
+      <button class="btn-primary" id="price-filter-btn" onclick="filterByPrice()" style="padding: 10px 22px;">Apply Filter</button>
+      <button class="btn-primary" id="price-reset-btn" onclick="resetPriceFilter()" style="padding: 10px 22px; background: #e8e3dc; color: #1a1a1a;">Reset</button>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <main class="max-w-6xl mx-auto px-6 py-8">
+    <div id="properties-view">
+      <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <div id="empty" class="hidden text-center py-20 text-stone-400">
+        <p class="text-5xl mb-4">🏠</p>
+        <p class="text-lg">No properties found.</p>
+      </div>
+    </div>
+
+    <!-- Bookings Panel -->
+    <div id="bookings-view" class="hidden">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-stone-200">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div>
+          <h2 class="serif text-xl text-stone-900">Visit Bookings</h2>
+          <p class="text-sm text-stone-400">Manage visit requests for your properties</p>
+        </div>
+        <span id="booking-count-badge" class="ml-auto text-sm text-stone-400"></span>
+      </div>
+      <div id="booking-list" class="flex flex-col gap-4"></div>
+    </div>
+
+    <div id="my-inquiries-view" class="max-w-4xl mx-auto px-6 py-8 hidden">
+      <div class="flex items-center gap-3 mb-6">
+        <div style="width:42px;height:42px;border-radius:12px;background:#f0ece6;display:flex;align-items:center;justify-content:center;color:#7c6f5e;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div>
+          <h2 class="serif text-xl text-stone-900">My Inquiries</h2>
+          <p class="text-sm text-stone-400">Questions you've asked about properties</p>
+        </div>
+      </div>
+      <div id="my-inq-list" class="flex flex-col gap-4"></div>
+    </div>
+  </main>
+
+  <!-- Upload Modal -->
+  <div id="modal-bg" onclick="closeModalOutside(event)">
+    <div id="modal">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl text-stone-900 serif" id="modal-title">List a Property</h2>
+        <button onclick="closeModal()"
+          class="text-stone-400 hover:text-stone-700 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <input type="hidden" id="f-propertyId" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Value (LKR)</label>
+            <input type="number" id="f-value" placeholder="e.g. 1500000" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Contact</label>
+            <input type="text" id="f-contact" placeholder="071 234 5678" />
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Location</label>
+          <input type="text" id="f-location" placeholder="e.g. Colombo 7" />
+        </div>
+        <div>
+          <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Details</label>
+          <input type="text" id="f-details" placeholder="3 bed, 2 bath…" />
+        </div>
+        <div>
+          <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Description</label>
+          <textarea id="f-description" rows="2" placeholder="Describe the property…"></textarea>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1 block">Property Images</label>
+          <div id="upload-zone" class="upload-zone p-6 text-center cursor-pointer"
+            onclick="document.getElementById('f-image').click()" ondragover="handleDrag(event)"
+            ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+            <input type="file" id="f-image" accept="image/png,image/jpeg" multiple class="hidden"
+              onchange="previewImages(event)" />
+            <div id="upload-prompt">
+              <p class="text-stone-500 text-sm">Click or drag PNG / JPEG images here</p>
+              <p class="text-stone-300 text-xs mt-1">Select multiple images</p>
+            </div>
+            <div id="img-previews-container" class="flex flex-wrap gap-2 mt-4 hidden"></div>
+          </div>
+        </div>
+        <button class="btn-primary w-full mt-2" id="submit-btn" onclick="submitProperty()">Submit Listing</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" onclick="closeLightbox()">
+    <span class="close-lightbox">&times;</span>
+    <img id="lightbox-img" src="" alt="Fullscreen image" />
+  </div>
+  <script>
+    const API_BASE = 'http://localhost:8080';
+
+    let allProperties = [];
+    let currentTab = 'all';
+
+    async function fetchProperties() {
+      renderSkeletons();
+      try {
+        const res = await fetch(`${API_BASE}/dashboard`);
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+        allProperties = await res.json();
+        renderCards(allProperties);
+      } catch (e) {
+        document.getElementById('grid').innerHTML = '';
+        document.getElementById('empty').classList.remove('hidden');
+        document.getElementById('empty').innerHTML = `
+          <p class="text-5xl mb-4">⚠️</p>
+          <p class="text-lg text-stone-600">Could not connect to backend.</p>
+          <p class="text-sm text-stone-400 mt-1">${e.message}</p>
+          <button onclick="fetchProperties()" class="btn-primary mt-4" style="margin: 16px auto 0; display:inline-block;">Retry</button>
+        `;
+        showToast('Failed to load properties.');
+      }
+    }
+
+    function renderSkeletons() {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = Array.from({ length: 6 }).map(() => `
+        <div class="card">
+          <div class="skeleton" style="height: 220px; border-radius: 0;"></div>
+          <div class="p-4 flex flex-col gap-3">
+            <div class="skeleton" style="height: 14px; width: 40%;"></div>
+            <div class="skeleton" style="height: 22px; width: 60%;"></div>
+            <div class="skeleton" style="height: 13px; width: 80%;"></div>
+            <div class="skeleton" style="height: 13px; width: 55%;"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderCards(list) {
+      const grid = document.getElementById('grid');
+      const empty = document.getElementById('empty');
+      const badge = document.getElementById('count-badge');
+      const currentUserId = localStorage.getItem('userId');
+
+      if (!list.length) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        badge.textContent = '0 properties';
+        return;
+      }
+
+      empty.classList.add('hidden');
+      badge.textContent = `${list.length} propert${list.length === 1 ? 'y' : 'ies'}`;
+
+      grid.innerHTML = list.map(p => {
+        const imgSrc = (p.imagePaths && p.imagePaths.length > 0) ? `${API_BASE}/property-images/${p.imagePaths[0]}` : null;
+        const formatted = new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', maximumFractionDigits: 0 }).format(p.value);
+        const isOwner = String(p.userId) === String(currentUserId);
+        
+        return `
+          <div class="card" data-id="${p.propertyId}">
+            <div class="img-wrap">
+              ${imgSrc
+                ? `<img src="${imgSrc}" alt="Property image" class="cursor-zoom-in" onclick="event.stopPropagation(); openLightbox(this.src)" onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'>No image</div>'" />`
+                : `<div class="img-placeholder">No image</div>`
+              }
+              <div class="absolute top-3 left-3 flex gap-2">
+                <span class="badge">User #${p.userId}</span>
+              </div>
+            </div>
+            <div class="p-4 flex flex-col gap-2 cursor-pointer" onclick="viewProperty(${p.propertyId})">
+              <div class="flex justify-between items-start">
+                <p class="price" onclick="viewProperty(${p.propertyId})" style="cursor: pointer;">${formatted}</p>
+                ${isOwner ? `
+                <div class="flex gap-2">
+                  <button onclick="event.stopPropagation(); openEditModal(${p.propertyId})" class="text-stone-400 hover:text-stone-900 transition-colors" title="Edit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button onclick="event.stopPropagation(); deleteProperty(${p.propertyId})" class="text-stone-400 hover:text-red-600 transition-colors" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                  </button>
+                </div>` : ''}
+              </div>
+              ${p.details ? `<p class="text-sm font-medium text-stone-700">${p.details}</p>` : ''}
+              ${p.description ? `<p class="text-sm text-stone-500 leading-relaxed line-clamp-2">${p.description}</p>` : ''}
+              <div class="flex flex-wrap gap-3 mt-1 pt-3 border-t border-stone-100 text-xs text-stone-400">
+                ${p.location ? `<span>📍 ${p.location}</span>` : ''}
+                ${p.contactNumber ? `<span>📞 ${p.contactNumber}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterCards() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      let list = currentTab === 'mine'
+        ? allProperties.filter(p => String(p.userId) === localStorage.getItem('userId'))
+        : allProperties;
+      if (q) {
+        list = list.filter(p =>
+          (p.description || '').toLowerCase().includes(q) ||
+          (p.details || '').toLowerCase().includes(q) ||
+          (p.location || '').toLowerCase().includes(q)
+        );
+      }
+      renderCards(list);
+    }
+
+    function setTab(tab, el) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+
+      const propertiesView = document.getElementById('properties-view');
+      const bookingsView = document.getElementById('bookings-view');
+      const myInquiriesView = document.getElementById('my-inquiries-view');
+      const priceFilter = document.querySelector('.max-w-6xl.mx-auto.px-6.mt-4');
+      const searchInput = document.getElementById('search-input');
+      const countBadge = document.getElementById('count-badge');
+
+      if (tab === 'bookings') {
+        propertiesView.classList.add('hidden');
+        myInquiriesView.classList.add('hidden');
+        bookingsView.classList.remove('hidden');
+        if (priceFilter) priceFilter.classList.add('hidden');
+        if (searchInput) searchInput.classList.add('hidden');
+        if (countBadge) countBadge.classList.add('hidden');
+        fetchBookings();
+      } else if (tab === 'inquiries') {
+        propertiesView.classList.add('hidden');
+        bookingsView.classList.add('hidden');
+        myInquiriesView.classList.remove('hidden');
+        if (priceFilter) priceFilter.classList.add('hidden');
+        if (searchInput) searchInput.classList.add('hidden');
+        if (countBadge) countBadge.classList.add('hidden');
+        fetchMyInquiries();
+        document.getElementById('inquiry-dot').classList.add('hidden');
+      } else {
+        propertiesView.classList.remove('hidden');
+        bookingsView.classList.add('hidden');
+        myInquiriesView.classList.add('hidden');
+        if (priceFilter) priceFilter.classList.remove('hidden');
+        if (searchInput) searchInput.classList.remove('hidden');
+        if (countBadge) countBadge.classList.remove('hidden');
+        filterCards();
+      }
+    }
+
+    function openModal() {
+      if (!document.getElementById('f-propertyId').value) {
+        document.getElementById('modal-title').textContent = 'List a Property';
+        document.getElementById('submit-btn').textContent = 'Submit Listing';
+        resetForm();
+      }
+      document.getElementById('modal-bg').classList.add('open');
+    }
+    function closeModal() {
+      document.getElementById('modal-bg').classList.remove('open');
+    }
+    function closeModalOutside(e) {
+      if (e.target === document.getElementById('modal-bg')) closeModal();
+    }
+
+    function resetForm() {
+      document.getElementById('f-propertyId').value = '';
+      document.getElementById('f-value').value = '';
+      document.getElementById('f-details').value = '';
+      document.getElementById('f-location').value = '';
+      document.getElementById('f-contact').value = '';
+      document.getElementById('f-description').value = '';
+      document.getElementById('f-image').value = '';
+      document.getElementById('img-previews-container').innerHTML = '';
+      document.getElementById('img-previews-container').classList.add('hidden');
+      document.getElementById('upload-prompt').classList.remove('hidden');
+    }
+
+    function previewImages(e) {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+      const container = document.getElementById('img-previews-container');
+      const prompt = document.getElementById('upload-prompt');
+      
+      container.innerHTML = files.map(file => `
+        <img src="${URL.createObjectURL(file)}" class="rounded-lg w-20 h-20 object-cover border border-stone-200" />
+      `).join('');
+      
+      container.classList.remove('hidden');
+      container.classList.add('flex');
+      prompt.classList.add('hidden');
+    }
+
+    function handleDrag(e) {
+      e.preventDefault();
+      document.getElementById('upload-zone').classList.add('drag-over');
+    }
+    function handleDragLeave() {
+      document.getElementById('upload-zone').classList.remove('drag-over');
+    }
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('upload-zone').classList.remove('drag-over');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        document.getElementById('f-image').files = files;
+        previewImages({ target: { files: files } });
+      }
+    }
+
+    async function submitProperty() {
+      const btn = document.getElementById('submit-btn');
+      const propertyId = document.getElementById('f-propertyId').value;
+      const value = document.getElementById('f-value').value;
+      const details = document.getElementById('f-details').value;
+      const description = document.getElementById('f-description').value;
+      const location = document.getElementById('f-location').value;
+      const contactNumber = document.getElementById('f-contact').value;
+      const userId = localStorage.getItem("userId");
+
+      if (!value || !details || !location || !contactNumber) {
+        showToast('Please fill in all required fields.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('userId', userId);
+      formData.append('value', value);
+      formData.append('details', details);
+      formData.append('description', description);
+      formData.append('location', location);
+      formData.append('contactNumber', contactNumber);
+      
+      const imageFiles = document.getElementById('f-image').files;
+      for (let i = 0; i < imageFiles.length; i++) {
+        formData.append('images', imageFiles[i]);
+      }
+
+      const isEdit = !!propertyId;
+      btn.textContent = isEdit ? 'Updating…' : 'Submitting…';
+      btn.disabled = true;
+
+      try {
+        const url = isEdit ? `${API_BASE}/property/${propertyId}` : `${API_BASE}/property`;
+        const method = isEdit ? 'PUT' : 'POST';
+        
+        const res = await fetch(url, {
+          method: method,
+          body: formData
+        });
+        
+        if (!res.ok) throw new Error(isEdit ? 'Update failed' : 'Upload failed');
+        
+        showToast(isEdit ? 'Property updated successfully!' : 'Property listed successfully!');
+        closeModal();
+        fetchProperties();
+      } catch (e) {
+        showToast('Operation failed: ' + e.message);
+      } finally {
+        btn.textContent = isEdit ? 'Update Property' : 'Submit Listing';
+        btn.disabled = false;
+      }
+    }
+
+    async function deleteProperty(id) {
+      if (!confirm('Are you sure you want to delete this property? This action cannot be undone.')) return;
+      try {
+        const res = await fetch(`${API_BASE}/property/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Delete failed');
+        showToast('Property deleted successfully.');
+        fetchProperties();
+      } catch (e) {
+        showToast('Failed to delete property.');
+      }
+    }
+
+    function openEditModal(id) {
+      const p = allProperties.find(prop => prop.propertyId === id);
+      if (!p) return;
+
+      document.getElementById('modal-title').textContent = 'Edit Property';
+      document.getElementById('f-propertyId').value = p.propertyId;
+      document.getElementById('f-value').value = p.value;
+      document.getElementById('f-details').value = p.details;
+      document.getElementById('f-location').value = p.location;
+      document.getElementById('f-contact').value = p.contactNumber;
+      document.getElementById('f-description').value = p.description || '';
+      document.getElementById('submit-btn').textContent = 'Update Property';
+      
+      document.getElementById('f-image').value = '';
+      document.getElementById('img-previews-container').innerHTML = '';
+      document.getElementById('img-previews-container').classList.add('hidden');
+      document.getElementById('upload-prompt').classList.remove('hidden');
+      
+      openModal();
+    }
+
+    function openLightbox(src) {
+      const lb = document.getElementById('lightbox');
+      const img = document.getElementById('lightbox-img');
+      img.src = src;
+      lb.classList.add('open');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function filterByPrice() {
+      const minPrice = document.getElementById('filter-min-price').value;
+      const maxPrice = document.getElementById('filter-max-price').value;
+
+      if (!minPrice || !maxPrice) {
+        showToast('Please enter both min and max price.');
+        return;
+      }
+      if (Number(minPrice) < 0 || Number(maxPrice) < 0) {
+        showToast('Prices must be positive values.');
+        return;
+      }
+      if (Number(minPrice) > Number(maxPrice)) {
+        showToast('Min price cannot exceed max price.');
+        return;
+      }
+
+      const btn = document.getElementById('price-filter-btn');
+      btn.textContent = 'Filtering…';
+      btn.disabled = true;
+      renderSkeletons();
+
+      try {
+        const res = await fetch(`${API_BASE}/property/filterProperties?minPrice=${encodeURIComponent(minPrice)}&maxPrice=${encodeURIComponent(maxPrice)}`);
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+        const filtered = await res.json();
+        allProperties = filtered;
+        renderCards(filtered);
+        showToast(`Showing properties between LKR ${Number(minPrice).toLocaleString()} – LKR ${Number(maxPrice).toLocaleString()}`);
+      } catch (e) {
+        showToast('Failed to filter properties: ' + e.message);
+      } finally {
+        btn.textContent = 'Apply Filter';
+        btn.disabled = false;
+      }
+    }
+
+    function resetPriceFilter() {
+      document.getElementById('filter-min-price').value = '';
+      document.getElementById('filter-max-price').value = '';
+      fetchProperties();
+      showToast('Price filter cleared.');
+    }
+
+    function viewProperty(propertyId) {
+      const property = allProperties.find(p => p.propertyId === propertyId);
+      if (property) {
+        localStorage.setItem('selectedProperty', JSON.stringify(property));
+        window.location.href = 'property.html';
+      }
+    }
+
+    /* ── Notifications ── */
+    async function checkNotifications() {
+      const userId = localStorage.getItem('userId');
+      if (!userId) return;
+
+      try {
+        // Check Inquiries
+        const inqRes = await fetch(`${API_BASE}/api/inquire/unread/count/${userId}`);
+        const unreadInqCount = await inqRes.json();
+        const inqDot = document.getElementById('inquiry-dot');
+        if (unreadInqCount > 0) inqDot.classList.remove('hidden');
+        else inqDot.classList.add('hidden');
+
+        // Check Bookings (Incoming PENDING)
+        const bookRes = await fetch(`${API_BASE}/api/bookings/owner/${userId}`);
+        const bookings = await bookRes.json();
+        const pendingBookings = bookings.filter(b => b.status === 'PENDING').length;
+        const bookDot = document.getElementById('booking-dot');
+        if (pendingBookings > 0) bookDot.classList.remove('hidden');
+        else bookDot.classList.add('hidden');
+      } catch (e) {
+        console.error("Notif check failed", e);
+      }
+    }
+    setInterval(checkNotifications, 10000); // Check every 10s
+    checkNotifications(); // Initial check
+
+    async function fetchBookings() {
+      const userId = localStorage.getItem('userId');
+      if (!userId) return;
+
+      const bookingList = document.getElementById('booking-list');
+      bookingList.innerHTML = Array.from({ length: 3 }).map(() =>
+        `<div class="notif-shimmer"></div>`
+      ).join('');
+
+      try {
+        // Fetch both incoming and outgoing
+        const [incomingRes, outgoingRes] = await Promise.all([
+          fetch(`${API_BASE}/api/bookings/owner/${userId}`),
+          fetch(`${API_BASE}/api/bookings/user/${userId}`)
+        ]);
+
+        if (!incomingRes.ok || !outgoingRes.ok) throw new Error("Failed to fetch bookings");
+
+        const incoming = await incomingRes.json();
+        const outgoing = await outgoingRes.json();
+
+        if (!incoming.length && !outgoing.length) {
+          renderBookingEmpty('No visit requests yet.');
+          document.getElementById('booking-count-badge').textContent = '0 requests';
+          return;
+        }
+
+        const total = incoming.length + outgoing.length;
+        document.getElementById('booking-count-badge').textContent = `${total} request${total === 1 ? '' : 's'}`;
+
+        const allBookings = [
+          ...incoming.map(b => ({ ...b, type: 'incoming' })),
+          ...outgoing.map(b => ({ ...b, type: 'outgoing' }))
+        ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        bookingList.innerHTML = allBookings.map((b, i) => {
+          const isIncoming = b.type === 'incoming';
+          return `
+            <div class="notif-card notif-animate" style="animation-delay: ${i * 0.06}s; opacity: 0; border-left: 4px solid ${isIncoming ? '#0369a1' : '#10b981'};">
+              <div class="flex items-start justify-between gap-4 mb-3">
+                <div class="flex items-center gap-3">
+                  <div style="width:38px;height:38px;border-radius:50%;background:${isIncoming ? 'linear-gradient(135deg,#c9b99a,#7c6f5e)' : 'linear-gradient(135deg,#34d399,#10b981)'};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:15px;flex-shrink:0;">
+                    ${(b.userName || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p class="font-medium text-stone-800 text-[15px]">${isIncoming ? b.userName : 'You requested a visit'}</p>
+                    <p class="text-[10px] uppercase font-bold tracking-wider ${isIncoming ? 'text-blue-500' : 'text-green-600'}">${isIncoming ? 'Incoming Request' : 'Sent by You'}</p>
+                  </div>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="notif-badge">📅 ${new Date(b.preferredDate).toLocaleDateString()}</span>
+                  <span class="text-[10px] font-bold uppercase ${b.status === 'ACCEPTED' ? 'text-green-600' : b.status === 'REJECTED' ? 'text-red-600' : 'text-orange-600'}">${b.status}</span>
+                </div>
+              </div>
+              <p class="text-sm text-stone-600 leading-relaxed mb-4">
+                Property #${b.propertyId}. Message: "${b.message || 'No message'}"
+              </p>
+              
+              ${isIncoming && b.status === 'PENDING' ? `
+                <div class="flex gap-2 justify-end">
+                  <button onclick="updateBookingStatus(${b.id}, 'REJECTED')" class="btn-primary" style="background:#fef2f2; color:#ef4444; border:1px solid #fee2e2; padding: 6px 16px; font-size:12px;">Reject</button>
+                  <button onclick="updateBookingStatus(${b.id}, 'ACCEPTED')" class="btn-primary" style="background:#f0fdf4; color:#22c55e; border:1px solid #dcfce7; padding: 6px 16px; font-size:12px;">Accept Visit</button>
+                </div>
+              ` : ''}
+
+              ${!isIncoming && b.status === 'ACCEPTED' ? `
+                <div class="bg-green-50 text-green-700 p-3 rounded-lg text-xs font-medium flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Owner has accepted your visit request!
+                </div>
+              ` : ''}
+              
+              ${!isIncoming && b.status === 'REJECTED' ? `
+                <div class="bg-red-50 text-red-700 p-3 rounded-lg text-xs font-medium flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  Owner has declined your visit request.
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+      } catch (e) {
+        bookingList.innerHTML = `<div class="text-center py-10 text-stone-400">Failed to load bookings.</div>`;
+      }
+    }
+
+    async function updateBookingStatus(id, status) {
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings/${id}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(status)
+        });
+        if (!res.ok) throw new Error('Update failed');
+        showToast(`Visit request ${status.toLowerCase()}`);
+        fetchBookings();
+      } catch (e) {
+        showToast('Failed to update status');
+      }
+    }
+
+    function renderBookingEmpty(message) {
+      document.getElementById('booking-list').innerHTML = `
+        <div class="notif-empty">
+          <p class="text-5xl mb-4">📅</p>
+          <p class="text-lg text-stone-600">${message}</p>
+        </div>
+      `;
+    }
+
+    async function submitReply(inquireId, context) {
+      const text = document.getElementById(`reply-text-${inquireId}`).value.trim();
+      const userId = localStorage.getItem('userId');
+      if (!text || !userId) {
+        showToast('Please type a reply.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/inquire/${inquireId}/reply`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: text, senderId: Number(userId) })
+        });
+        if (!res.ok) throw new Error('Reply failed');
+        showToast('Reply sent successfully!');
+        if (context === 'notifications') fetchNotifications();
+        else fetchMyInquiries();
+      } catch (e) {
+        showToast('Failed to send reply.');
+      }
+    }
+
+    async function fetchMyInquiries() {
+      const userId = localStorage.getItem('userId');
+      if (!userId) return;
+
+      const list = document.getElementById('my-inq-list');
+      list.innerHTML = `<div class="text-center py-10 text-stone-400">Loading your inquiries...</div>`;
+
+      try {
+        const [sentRes, receivedRes] = await Promise.all([
+          fetch(`${API_BASE}/api/inquire/${userId}`),
+          fetch(`${API_BASE}/api/inquire/owner/${userId}`)
+        ]);
+
+        if (!sentRes.ok || !receivedRes.ok) throw new Error('Failed to fetch');
+        
+        const sent = await sentRes.json();
+        const received = await receivedRes.json();
+
+        // Mark received as read
+        received.forEach(inq => {
+          if (!inq.isRead) {
+            fetch(`${API_BASE}/api/inquire/${inq.id}/read`, { method: 'PUT' });
+          }
+        });
+
+        if (!sent.length && !received.length) {
+          list.innerHTML = `<div class="text-center py-10 text-stone-400">No inquiries found.</div>`;
+          return;
+        }
+
+        const all = [
+          ...sent.map(i => ({ ...i, category: 'sent' })),
+          ...received.map(i => ({ ...i, category: 'received' }))
+        ].sort((a, b) => b.id - a.id);
+
+        list.innerHTML = all.map(inq => {
+          const isIncoming = inq.category === 'received';
+          const thread = inq.messages || [];
+          return `
+            <div class="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm ${isIncoming ? 'border-l-4 border-l-blue-500' : ''}">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <p class="text-xs font-bold text-stone-400 uppercase tracking-widest">${isIncoming ? 'Incoming Inquiry' : 'Your Question'}</p>
+                    ${isIncoming ? '<span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded text-[10px] font-bold">NEW</span>' : ''}
+                  </div>
+                  <p class="text-sm text-stone-800 p-3 bg-stone-50 rounded-lg">${inq.description}</p>
+                  ${isIncoming ? `<p class="text-[10px] text-stone-400 mt-1">From: ${inq.name || 'Anonymous'} (${inq.contactNumber || 'No contact'})</p>` : ''}
+                </div>
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-2">
+                    <span class="badge" style="background:#1a1a1a; color:#fff; font-size:10px;">Property #${inq.propertyId}</span>
+                    <span class="text-[11px] font-medium text-stone-500">${inq.propertyDetails || ''}</span>
+                  </div>
+                  <p class="text-[10px] text-stone-400">Owner: ${inq.ownerName || 'Unknown'}</p>
+                </div>
+              </div>
+              
+              <div class="space-y-3 mb-6">
+                ${thread.map(m => `
+                  <div class="flex ${String(m.senderId) === String(userId) ? 'justify-end' : 'justify-start'}">
+                    <div class="max-w-[85%] p-3 rounded-2xl text-sm ${String(m.senderId) === String(userId) ? 'bg-stone-900 text-white rounded-tr-none' : 'bg-green-50 text-green-900 rounded-tl-none border border-green-100'}">
+                      ${m.content}
+                      <p class="text-[10px] mt-1 opacity-50 text-right">${new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="mt-4 pt-4 border-t border-stone-100">
+                <div class="flex flex-col gap-2">
+                  <textarea id="reply-text-${inq.id}" placeholder="Reply back..." rows="2" class="w-full text-sm border border-stone-200 rounded-lg p-2.5 outline-none focus:border-stone-800" style="background:#fafafa;"></textarea>
+                  <button onclick="submitReply(${inq.id}, 'mine')" class="btn-primary self-end" style="padding: 6px 16px; font-size:12px;">Reply Back</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        list.innerHTML = `<div class="text-center py-10 text-red-400">Failed to load inquiries.</div>`;
+      }
+    }
+
+    function renderNotifEmpty(message) {
+      document.getElementById('notif-list').innerHTML = `
+        <div class="notif-empty">
+          <p class="text-5xl mb-4">🔔</p>
+          <p class="text-lg text-stone-600">${message}</p>
+        </div>
+      `;
+    }
+
+    function logout() {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '../user/login.html';
+    }
+
+    async function init() {
+      await fetchProperties();
+      
+      const editId = localStorage.getItem('editPropertyId');
+      if (editId) {
+        localStorage.removeItem('editPropertyId');
+        openEditModal(Number(editId));
+      }
+    }
+
+    init();
+  </script>
+
+
+</body>
+
+</html>
